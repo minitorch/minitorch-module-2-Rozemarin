@@ -71,15 +71,13 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
     """
     visited = set()
     order = []
-
+ 
     def visit(node: Variable) -> None:
-        node_id = id(node)
-        if node_id not in visited:
-            visited.add(node_id)
-            if node.history is not None:  # Check if the node has dependencies
-                for input_var in node.history.inputs:
-                    visit(input_var)
-            order.append(node)
+        visited.add(node.unique_id)
+        for parent in node.parents:
+            if not parent.is_constant() and parent.unique_id not in visited:
+                visit(parent)
+        order.append(node)
 
     visit(variable)
     return reversed(order)
