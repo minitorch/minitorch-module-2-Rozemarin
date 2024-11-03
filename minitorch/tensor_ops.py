@@ -268,9 +268,20 @@ def tensor_map(fn: Callable[[float], float]) -> Any:
         in_shape: Shape,
         in_strides: Strides,
     ) -> None:
-        # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
-
+        
+        out_size = 1
+        for d in out_shape:
+            out_size *= d
+            
+        in_index = [0] * len(in_shape)
+        out_index = [0] * len(out_shape)
+        for i in range(out_size):
+            to_index(i, out_shape, out_index)
+            broadcast_index(out_index, out_shape, in_shape, in_index)
+            in_positions = index_to_position(in_index, in_strides)
+            out_positions = index_to_position(out_index, out_strides)
+            out[out_positions] = fn(in_storage[in_positions])
+            
     return _map
 
 
@@ -318,9 +329,23 @@ def tensor_zip(fn: Callable[[float, float], float]) -> Any:
         b_shape: Shape,
         b_strides: Strides,
     ) -> None:
-        # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
-
+        
+        out_size = 1
+        for d in out_shape:
+            out_size *= d
+            
+        a_index = [0] * len(a_shape)
+        b_index = [0] * len(b_shape)
+        out_index = [0] * len(out_shape)
+        for i in range(out_size):
+            to_index(i, out_shape, out_index)
+            broadcast_index(out_index, out_shape, a_shape, a_index)
+            broadcast_index(out_index, out_shape, b_shape, b_index)
+            a_positions = index_to_position(a_index, a_strides)
+            b_positions = index_to_position(b_index, b_strides)
+            
+            out[index_to_position(out_index, out_strides)] = fn(a_storage[a_positions], b_storage[b_positions])
+            
     return _zip
 
 
@@ -354,9 +379,15 @@ def tensor_reduce(fn: Callable[[float, float], float]) -> Any:
         a_strides: Strides,
         reduce_dim: int,
     ) -> None:
-        # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
 
+        out_index = [0] * len(out_shape)
+        for i in range(len(out)):
+            to_index(i, out_shape, out_index)
+            for j in range(a_shape[reduce_dim]):
+                out_index[reduce_dim] = j
+                a_positions = index_to_position(out_index, a_strides)
+                out[i] = fn(a_storage[a_positions], out[i])
+        
     return _reduce
 
 
